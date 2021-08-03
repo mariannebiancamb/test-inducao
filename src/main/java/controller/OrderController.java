@@ -36,6 +36,11 @@ public class OrderController {
         post("/payment", (request, response) ->
                 new Gson().toJson(orderService.preferenceOrder())
         );
+
+        exception(RuntimeException.class, ((exception, request, response) -> {
+            response.status(500);
+            response.body(exception.getMessage());
+        }));
     }
 
 
