@@ -19,10 +19,35 @@ public class Product {
         return name;
     }
 
-    public Double getPrice() {
-        return price;
+    public Float getPrice() {
+        return Float.parseFloat(String.valueOf(price));
     }
 
     //Builder Pattern
+    public static class Builder {
+        Long id;
+        String name;
+        Double price;
 
+        public Builder withID(Long id) {
+            this.id = id;
+            return this;
+        }
+        public Builder withName(String name) {
+            this.name = name;
+            return this;
+        }
+        public Builder withPrice(Double price) {
+            this.price = price;
+            return this;
+        }
+        public Product build(){
+            return new Product(id, name, price);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "{id=" + id + ", name='" + name + ", price=" + price + "}";
+    }
 }

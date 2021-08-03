@@ -1,8 +1,11 @@
-entities/Product.java
- entities.Product
+controller/request/OrderRequest.java
+ controller.request.OrderRequest
 entities/OrderProduct.java
  entities.OrderProduct
-service/OrderService.java
- service.OrderService
+entities/Product.java
+ entities.Product
+ entities.Product$Builder
 controller/OrderController.java
  controller.OrderController
+service/OrderService.java
+ service.OrderService
