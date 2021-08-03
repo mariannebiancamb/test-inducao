@@ -1,24 +1,18 @@
 package controller.request;
 
+import entities.Order;
+
+import java.util.List;
+
 public class OrderRequest {
-    private Long idProduct;
-    private Integer quantity;
+    private final List<Order> orderList;
 
-    public OrderRequest(Long idProduct, Integer quantity) {
-        this.idProduct = idProduct;
-        this.quantity = quantity;
+    public OrderRequest(List<Order> orderList) {
+        this.orderList = orderList;
     }
 
-    public Long getIdProduct() {
-        return idProduct;
+    public List<Order> getOrderList() {
+        return orderList;
     }
 
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    @Override
-    public String toString() {
-        return "OrderRequest{" + "idProduct=" + idProduct + ", quantity=" + quantity + '}';
-    }
 }

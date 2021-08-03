@@ -1,10 +1,15 @@
-controller/request/OrderRequest.java
- controller.request.OrderRequest
-entities/OrderProduct.java
- entities.OrderProduct
 entities/Product.java
  entities.Product
  entities.Product$Builder
+controller/response/PreferenceResponse.java
+ controller.response.PreferenceResponse
+ controller.response.PreferenceResponse$Builder
+entities/Category.java
+ entities.Category
+controller/request/OrderRequest.java
+ controller.request.OrderRequest
+entities/Order.java
+ entities.Order
 controller/OrderController.java
  controller.OrderController
 service/OrderService.java
