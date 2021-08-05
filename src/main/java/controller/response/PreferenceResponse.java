@@ -6,11 +6,11 @@ import com.mercadopago.resources.datastructures.preference.Payer;
 import java.util.List;
 
 public class PreferenceResponse {
-    private List<Item> items;
-    private Payer payer;
-    private String id;
-    private String initPoint;
-    private String sandBoxInitPoint;
+    private final List<Item> items;
+    private final Payer payer;
+    private final String id;
+    private final String initPoint;
+    private final String sandBoxInitPoint;
 
     public PreferenceResponse(List<Item> items, Payer payer, String id, String initPoint, String sandBoxInitPoint) {
         this.items = items;

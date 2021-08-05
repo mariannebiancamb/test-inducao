@@ -38,7 +38,7 @@ public class OrderService {
     }
 
     public PreferenceResponse preferenceOrder() throws MPException {
-         if(cart.isEmpty()) { throw new RuntimeException("Cart is empty"); }
+        if(cart.isEmpty()) { throw new RuntimeException("Cart is empty"); }
 
         Preference preference = new Preference();
 
@@ -51,20 +51,20 @@ public class OrderService {
                     .setUnitPrice(entry.getKey().getPrice());
             preference.appendItem(item);
         }
-        preference.save();
+        Preference pref = preference.save();
 
         return new PreferenceResponse.Builder()
-                .withItems(preference.getItems())
-                .withId(preference.getId())
-                .withInitPoint(preference.getInitPoint())
-                .withPayer(preference.getPayer())
-                .withSandBoxInitPoint(preference.getSandboxInitPoint())
+                .withItems(pref.getItems())
+                .withId(pref.getId())
+                .withInitPoint(pref.getInitPoint())
+                .withPayer(pref.getPayer())
+                .withSandBoxInitPoint(pref.getSandboxInitPoint())
                 .build();
     }
 
     public String addInCart(OrderRequest orderRequest) {
         for (Order or : orderRequest.getOrderList()) {
-            if(or.getQuantity() < 0) throw new RuntimeException("Quantity should be positive number.");
+            if(or.getQuantity() <= 0) throw new RuntimeException("Quantity should be positive number.");
             Integer quant = 0;
             Product product = findById(or.getIdProduct());
             if(cart.containsKey(product)) {

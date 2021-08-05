@@ -10,6 +10,8 @@ controller/request/OrderRequest.java
  controller.request.OrderRequest
 entities/Order.java
  entities.Order
+entities/Cart.java
+ entities.Cart
 controller/OrderController.java
  controller.OrderController
 service/OrderService.java
