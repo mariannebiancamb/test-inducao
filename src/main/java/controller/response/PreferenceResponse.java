@@ -20,6 +20,10 @@ public class PreferenceResponse {
         this.sandBoxInitPoint = sandBoxInitPoint;
     }
 
+    public List<Item> getItem() {
+        return items;
+    }
+
     //Builder Pattern
     public static class Builder {
         List<Item> items;

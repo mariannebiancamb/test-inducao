@@ -3,10 +3,19 @@ package entities;
 import java.util.Map;
 
 public class Cart {
-    private Map<Product, Integer> itemsCart;
+    private final Map<Product, Integer> itemsCart;
+    private Double totalPrice;
 
-    public Cart(Map<Product, Integer> itemsCart) {
+    public Cart(Map<Product, Integer> itemsCart, Double totalPrice) {
         this.itemsCart = itemsCart;
+        this.totalPrice = totalPrice;
+    }
+
+    public Double getTotalPrice() {
+        for (Map.Entry<Product, Integer> entry : itemsCart.entrySet()) {
+            totalPrice = totalPrice + entry.getKey().getPrice();
+        }
+        return totalPrice;
     }
 
     public Map<Product, Integer> getItemsCart() {

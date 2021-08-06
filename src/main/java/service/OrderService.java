@@ -77,6 +77,7 @@ public class OrderService {
     }
 
     public Map<Product, Integer> viewCart() {
+        //valor total
         return cart;
     }
 
