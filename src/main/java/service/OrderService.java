@@ -76,9 +76,12 @@ public class OrderService {
         return "Products add in the cart.";
     }
 
-    public Map<Product, Integer> viewCart() {
-        //valor total
-        return cart;
+    public String viewCart() {
+        Double totalPrice = 0.0;
+        for (Map.Entry<Product, Integer> entry : cart.entrySet()) {
+            totalPrice += entry.getKey().getPrice();
+        }
+        return "PRODUCTS: " + cart.toString() + "\n TOTAL PRICE: R$" + totalPrice + " " ;
     }
 
 }
