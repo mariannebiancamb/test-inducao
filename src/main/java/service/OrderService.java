@@ -81,8 +81,7 @@ public class OrderService {
         for (Map.Entry<Product, Integer> entry : cart.entrySet()) {
             totalPrice += entry.getKey().getPrice();
         }
-        //return "PRODUCTS: " + cart.toString() + "\n TOTAL PRICE: R$" + totalPrice + " " ;
-        return "oi";
+        return "PRODUCTS: " + cart.toString() + "\n TOTAL PRICE: R$" + totalPrice + " " ;
     }
 
 }
