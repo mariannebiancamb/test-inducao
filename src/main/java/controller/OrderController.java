@@ -17,7 +17,7 @@ public class OrderController {
 
     public static void main(String[] args) throws MPException {
 
-        MercadoPago.SDK.setAccessToken("TEST-8051729513123545-080214-44d1ded32c0c88b7dbd7a800c5078f6c-800777909");
+        MercadoPago.SDK.setAccessToken("APP_HOME");
 
         before("/*", (request, response) -> response.type("application/json"));
 
