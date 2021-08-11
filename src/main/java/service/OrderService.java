@@ -1,13 +1,17 @@
 package service;
 
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.Payment;
 import com.mercadopago.resources.Preference;
+import com.mercadopago.resources.datastructures.payment.Identification;
+import com.mercadopago.resources.datastructures.payment.Payer;
 import com.mercadopago.resources.datastructures.preference.Item;
 import controller.request.OrderRequest;
+import controller.request.PaymentRequest;
 import controller.response.PreferenceResponse;
-import entities.Category;
-import entities.Order;
-import entities.Product;
+import entities.*;
+import entities.factory.*;
+import entities.factory.impl.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +21,25 @@ import java.util.Map;
 public class OrderService {
 
     private final Map<Product, Integer> cart = new HashMap<>();
+    private PreferenceFactory preferenceImpl = new PreferenceImpl();
+    private ItemFactory itemImpl = new ItemImpl();
+    private PaymentFactory paymentImpl = new PaymentImpl();
+    private PayerFactory payerImpl = new PayerImpl();
+    private IdentificationFactory identificationImpl = new IdentificationImpl();
+
+    public OrderService() { }
+
+    public OrderService(PaymentFactory paymentImpl, PayerFactory payerImpl, IdentificationFactory identificationImpl) {
+        this.paymentImpl = paymentImpl;
+        this.payerImpl = payerImpl;
+        this.identificationImpl = identificationImpl;
+        cart.put(new Product.Builder().withID(1L).withName("PS4").withPrice(2000.00).withCategory(Category.GAMER).build(), 1);
+    }
+
+    public OrderService(PreferenceFactory preferenceImpl, ItemFactory itemImpl) {
+        this.preferenceImpl = preferenceImpl;
+        this.itemImpl = itemImpl;
+    }
 
     public List<Product> findAll() {
         List<Product> list = new ArrayList<>();
@@ -40,26 +63,49 @@ public class OrderService {
     public PreferenceResponse preferenceOrder() throws MPException {
         if(cart.isEmpty()) { throw new RuntimeException("Cart is empty"); }
 
-        Preference preference = new Preference();
+        Preference preference = preferenceImpl.newPreference();
 
         for (Map.Entry<Product, Integer> entry : cart.entrySet()) {
-            Item item = new Item();
-            item.setTitle(entry.getKey().getName())
+            Item item = itemImpl.newItem().setTitle(entry.getKey().getName())
                     .setId(entry.getKey().getId().toString())
                     .setQuantity(entry.getValue())
                     .setCategoryId(entry.getKey().getCategory().toString())
                     .setUnitPrice(entry.getKey().getPrice());
             preference.appendItem(item);
         }
-        Preference pref = preference.save();
+        preference = preference.save();
 
         return new PreferenceResponse.Builder()
-                .withItems(pref.getItems())
-                .withId(pref.getId())
-                .withInitPoint(pref.getInitPoint())
-                .withPayer(pref.getPayer())
-                .withSandBoxInitPoint(pref.getSandboxInitPoint())
+                .withItems(preference.getItems())
+                .withId(preference.getId())
+                .withInitPoint(preference.getInitPoint())
+                .withPayer(preference.getPayer())
+                .withSandBoxInitPoint(preference.getSandboxInitPoint())
                 .build();
+    }
+
+    public Payment paymentOrder(PaymentRequest request) throws MPException {
+        if(cart.isEmpty()) { throw new RuntimeException("Cart is empty"); }
+
+        Identification identification = identificationImpl.newIdentification();
+        Payer payer = payerImpl.newPayer();
+        Payment payment = paymentImpl.newPayment();
+
+        payment.setTransactionAmount(totalPrice())
+                .setDescription("Produtos da MyTech")
+                .setPaymentMethodId(request.getPaymentMethodId())
+                .setPayer(payer.setEmail(request.getEmail())
+                        .setFirstName(request.getFirstName())
+                        .setLastName(request.getLastName())
+                        .setIdentification(identification
+                                .setType("CPF")
+                                .setNumber(request.getCpf()))
+                        .setAddress(request.getAddress())
+                );
+
+        payment = payment.save();
+
+        return payment;
     }
 
     public String addInCart(OrderRequest orderRequest) {
@@ -76,12 +122,16 @@ public class OrderService {
         return "Products add in the cart.";
     }
 
-    public String viewCart() {
-        Double totalPrice = 0.0;
+    private Float totalPrice() {
+        Float totalPrice = 0f;
         for (Map.Entry<Product, Integer> entry : cart.entrySet()) {
             totalPrice += entry.getKey().getPrice();
         }
-        return "PRODUCTS: " + cart.toString() + "\n TOTAL PRICE: R$" + totalPrice + " " ;
+        return totalPrice;
+    }
+
+    public String viewCart() {
+        return "PRODUCTS: " + cart.toString() + "\n TOTAL PRICE: R$" + totalPrice();
     }
 
 }

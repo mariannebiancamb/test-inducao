@@ -1,18 +1,28 @@
 package service
 
-import com.mercadopago.MercadoPago
+import com.mercadopago.resources.Payment
 import com.mercadopago.resources.Preference
+import com.mercadopago.resources.datastructures.payment.Address
+import com.mercadopago.resources.datastructures.payment.Identification
+import com.mercadopago.resources.datastructures.payment.Payer
 import com.mercadopago.resources.datastructures.preference.Item
 import controller.request.OrderRequest
-import controller.response.PreferenceResponse
+import controller.request.PaymentRequest
+import entities.factory.impl.IdentificationImpl
+import entities.factory.impl.ItemImpl
+import entities.factory.impl.PayerImpl
+import entities.factory.impl.PaymentImpl
+import entities.factory.impl.PreferenceImpl
 import org.mockito.Mockito
 import entities.Category
 import entities.Order
 import entities.Product
+import spock.lang.Shared
 import spock.lang.Specification
 
 class OrderServiceTest extends Specification {
 
+    @Shared
     OrderService orderServiceTest
     Product product
     Product product1
@@ -20,7 +30,6 @@ class OrderServiceTest extends Specification {
     OrderRequest orderRequest
 
     def setup() {
-        MercadoPago.SDK.setAccessToken("TEST-8051729513123545-080214-44d1ded32c0c88b7dbd7a800c5078f6c-800777909");
         orderServiceTest = new OrderService()
         product = new Product.Builder().withID(1L).withName("PS4").withPrice(2000.00).withCategory(Category.GAMER).build()
         product1 = new Product.Builder().withID(2L).withName("TV").withPrice(600.00).withCategory(Category.TECH).build()
@@ -37,7 +46,7 @@ class OrderServiceTest extends Specification {
             listExpect == listResult
     }
 
-    def "should view tens in cart"() {
+    def "should view items in cart"() {
         given:
              Map<Product, Integer> cart = new HashMap<>();
              cart.put(product, 1);
@@ -46,7 +55,7 @@ class OrderServiceTest extends Specification {
         when:
             def result = orderServiceTest.viewCart();
         then:
-            result == cart
+            result != null
     }
 
     def "should add item in the cart"() {
@@ -65,25 +74,30 @@ class OrderServiceTest extends Specification {
 
     def "should make a preference"() {
         given:
-            Preference preference = new Preference()
+            PreferenceImpl preferenceImplMock = Mockito.mock(PreferenceImpl)
+            ItemImpl itemImplMock = Mockito.mock(ItemImpl)
+
+            OrderService orderServiceTest = new OrderService(preferenceImplMock, itemImplMock)
+
             Preference preferenceMock = Mockito.mock(Preference)
-            Item item = new Item()
             Item itemMock = Mockito.mock(Item)
 
-            item.setTitle(product.getName())
-                .setId(product.getId().toString())
-                .setQuantity(1)
-                .setCategoryId(product.getCategory().toString())
-                .setUnitPrice(product.getPrice());
-            preference.appendItem(item);
+            Item item = new Item().setTitle(product.getName())
+                    .setId(product.getId().toString())
+                    .setQuantity(1)
+                    .setCategoryId(product.getCategory().toString())
+                    .setUnitPrice(product.getPrice());
+            Preference preference = new Preference().appendItem(item)
 
-            Mockito.when(itemMock.setTitle(any() as String)).thenReturn(item)
-            Mockito.when(preferenceMock.appendItem(item)).thenReturn(preference)
+            orderServiceTest.addInCart(new OrderRequest([new Order(1L, 1)]))
+
+            Mockito.when(preferenceImplMock.newPreference()).thenReturn(preferenceMock)
+            Mockito.when(itemImplMock.newItem()).thenReturn(item)
+            Mockito.when(preferenceMock.appendItem(itemMock)).thenReturn(preferenceMock)
             Mockito.when(preferenceMock.save()).thenReturn(preference)
 
-            orderServiceTest.addInCart(new OrderRequest([new Order(1L, 1)]));
         when:
-            PreferenceResponse preferenceResponseResult = orderServiceTest.preferenceOrder()
+            def preferenceResponseResult = orderServiceTest.preferenceOrder()
         then:
             preferenceResponseResult != null
     }
@@ -93,6 +107,62 @@ class OrderServiceTest extends Specification {
             orderServiceTest.preferenceOrder()
         then:
             thrown(RuntimeException)
+    }
+
+    def "should not make a payment"() {
+        when:
+            Address address = new Address().setZipCode("06233200")
+                    .setStreetName("Av. das Nações Unidas").setStreetNumber(3003)
+                    .setNeighborhood("Bonfim").setCity("Osasco").setFederalUnit("SP")
+
+            PaymentRequest paymentRequest =  new PaymentRequest("test_user_68226018@testuser.com",
+                    "Test", "User", "19119119100", "bolbradesco", address)
+
+            orderServiceTest.paymentOrder(paymentRequest)
+        then:
+            thrown(RuntimeException)
+    }
+
+    def "shpuld make a payment"() { //FIX
+        given:
+            PaymentImpl paymentImplMock = Mockito.mock(PaymentImpl)
+            PayerImpl payerImplMock = Mockito.mock(PayerImpl)
+            IdentificationImpl identificationImplMock = Mockito.mock(IdentificationImpl)
+
+            Payment paymentMock = Mockito.mock(Payment)
+            Payer payerMock = Mockito.mock(Payer)
+            Identification identificationMock = Mockito.mock(Identification)
+
+            OrderService orderServiceTest = new OrderService(paymentImplMock, payerImplMock, identificationImplMock)
+
+            orderServiceTest.addInCart(new OrderRequest([new Order(1L, 1)]))
+
+            Address address = new Address().setZipCode("06233200")
+                .setStreetName("Av. das Nações Unidas").setStreetNumber(3003)
+                .setNeighborhood("Bonfim").setCity("Osasco").setFederalUnit("SP")
+            Identification identification = new Identification().setNumber("19119119100").setType("CPF")
+            Payer payer = new Payer().setEmail("test_user_68226018@testuser.com")
+                    .setFirstName("Test")
+                    .setLastName("User")
+                    .setIdentification(identification)
+                    .setAddress(address)
+            Payment payment = new Payment().setTransactionAmount(2000.00)
+                    .setDescription("Produtos da MyTech")
+                    .setPaymentMethodId("bolbradesco")
+                    .setPayer(payer)
+
+
+            Mockito.when(paymentImplMock.newPayment()).thenReturn(paymentMock)
+            Mockito.when(payerImplMock.newPayer()).thenReturn(payer)
+            Mockito.when(identificationImplMock.newIdentification()).thenReturn(identificationMock)
+            Mockito.when(paymentMock.save()).thenReturn(payment)
+
+            PaymentRequest paymentRequest =  new PaymentRequest("test_user_68226018@testuser.com",
+                    "Test", "User", "19119119100", "bolbradesco", address)
+        when:
+            def result = orderServiceTest.paymentOrder(paymentRequest)
+        then:
+            result != null
     }
 
 }

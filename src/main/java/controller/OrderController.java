@@ -6,6 +6,7 @@ import com.mercadopago.MercadoPago;
 import com.google.gson.Gson;
 import com.mercadopago.exceptions.MPException;
 import controller.request.OrderRequest;
+import controller.request.PaymentRequest;
 import service.OrderService;
 
 
@@ -17,11 +18,9 @@ public class OrderController {
 
     public static void main(String[] args) throws MPException {
 
-        MercadoPago.SDK.setAccessToken("APP_HOME");
+        MercadoPago.SDK.setAccessToken(System.getenv("APP_HOME"));
 
         before("/*", (request, response) -> response.type("application/json"));
-
-        get("/", (request, response) -> "Bem-vindo(a) a MyTech.");
 
         get("/list", (request, response) -> {
             return "Products: " + orderService.findAll();
@@ -33,9 +32,14 @@ public class OrderController {
 
         get("/cart", (request, response) -> orderService.viewCart());
 
-        post("/payment", (request, response) ->
+        //parte 1
+        post("/preference", (request, response) ->
                 new Gson().toJson(orderService.preferenceOrder())
         );
+
+        post("/payment", ((request, response) ->
+                new Gson().toJson(orderService.paymentOrder(new Gson().fromJson(request.body(), PaymentRequest.class)))
+        ));
 
         exception(RuntimeException.class, ((exception, request, response) -> {
             response.status(500);
