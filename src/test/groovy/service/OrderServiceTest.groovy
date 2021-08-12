@@ -58,9 +58,9 @@ class OrderServiceTest extends Specification {
 
     def "should add item in the cart"() {
         when:
-            String result = orderServiceTest.addInCart(orderRequest);
+            def result = orderServiceTest.addInCart(orderRequest);
         then:
-            result == "Products add in the cart."
+            result
     }
 
     def "should not add item in the cart"() {
