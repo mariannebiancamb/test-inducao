@@ -75,6 +75,10 @@ public class OrderService {
         }
         preference = preference.save();
 
+        return convertPreferenceToPreferenceResponse(preference);
+    }
+
+    private PreferenceResponse convertPreferenceToPreferenceResponse(Preference preference) {
         return new PreferenceResponse.Builder()
                 .withItems(preference.getItems())
                 .withId(preference.getId())
@@ -108,7 +112,7 @@ public class OrderService {
         return payment;
     }
 
-    public String addInCart(OrderRequest orderRequest) {
+    public Messege addInCart(OrderRequest orderRequest) {
         for (Order or : orderRequest.getOrderList()) {
             if(or.getQuantity() <= 0) throw new RuntimeException("Quantity should be positive number.");
             Integer quant = 0;
@@ -119,7 +123,7 @@ public class OrderService {
             } else cart.put(product, or.getQuantity());
 
         }
-        return "Products add in the cart.";
+        return new Messege("Products add in the cart.");
     }
 
     private Float totalPrice() {

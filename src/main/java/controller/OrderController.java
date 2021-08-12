@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.mercadopago.exceptions.MPException;
 import controller.request.OrderRequest;
 import controller.request.PaymentRequest;
+import entities.Messege;
 import service.OrderService;
 
 
@@ -26,8 +27,10 @@ public class OrderController {
             return "Products: " + orderService.findAll();
         });
 
-        post("/order", (request, response) ->
-                    orderService.addInCart(new Gson().fromJson(request.body(), OrderRequest.class))
+        post("/order", (request, response) -> {
+                Messege messege = orderService.addInCart(new Gson().fromJson(request.body(), OrderRequest.class));
+                return new Gson().toJson(messege);
+            }
         );
 
         get("/cart", (request, response) -> orderService.viewCart());
@@ -43,7 +46,7 @@ public class OrderController {
 
         exception(RuntimeException.class, ((exception, request, response) -> {
             response.status(500);
-            response.body(exception.getMessage());
+            response.body(new Gson().toJson(new Messege(exception.getMessage())));
         }));
     }
 

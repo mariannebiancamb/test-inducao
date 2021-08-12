@@ -17,12 +17,10 @@ import org.mockito.Mockito
 import entities.Category
 import entities.Order
 import entities.Product
-import spock.lang.Shared
 import spock.lang.Specification
 
 class OrderServiceTest extends Specification {
 
-    @Shared
     OrderService orderServiceTest
     Product product
     Product product1
@@ -123,46 +121,53 @@ class OrderServiceTest extends Specification {
             thrown(RuntimeException)
     }
 
-    def "shpuld make a payment"() { //FIX
+    def "shpuld make a payment"() {
         given:
-            PaymentImpl paymentImplMock = Mockito.mock(PaymentImpl)
-            PayerImpl payerImplMock = Mockito.mock(PayerImpl)
-            IdentificationImpl identificationImplMock = Mockito.mock(IdentificationImpl)
+            Payment payment = builderPayment()
 
-            Payment paymentMock = Mockito.mock(Payment)
-            Payer payerMock = Mockito.mock(Payer)
-            Identification identificationMock = Mockito.mock(Identification)
+            PaymentImpl paymentImplMock = Mockito.mock(PaymentImpl)
+            Payment paymentMock = Mockito.spy(Payment)
+            Mockito.when(paymentImplMock.newPayment()).thenReturn(paymentMock)
+            Mockito.doReturn(payment).when(paymentMock).save()
+
+            PayerImpl payerImplMock = Mockito.mock(PayerImpl)
+            Payer payerMock = Mockito.spy(Payer)
+            Mockito.when(payerImplMock.newPayer()).thenReturn(payerMock)
+
+            IdentificationImpl identificationImplMock = Mockito.mock(IdentificationImpl)
+            Identification identificationMock = Mockito.spy(Identification)
+            Mockito.when(identificationImplMock.newIdentification()).thenReturn(identificationMock)
 
             OrderService orderServiceTest = new OrderService(paymentImplMock, payerImplMock, identificationImplMock)
 
-            orderServiceTest.addInCart(new OrderRequest([new Order(1L, 1)]))
-
-            Address address = new Address().setZipCode("06233200")
-                .setStreetName("Av. das Nações Unidas").setStreetNumber(3003)
-                .setNeighborhood("Bonfim").setCity("Osasco").setFederalUnit("SP")
-            Identification identification = new Identification().setNumber("19119119100").setType("CPF")
-            Payer payer = new Payer().setEmail("test_user_68226018@testuser.com")
-                    .setFirstName("Test")
-                    .setLastName("User")
-                    .setIdentification(identification)
-                    .setAddress(address)
-            Payment payment = new Payment().setTransactionAmount(2000.00)
-                    .setDescription("Produtos da MyTech")
-                    .setPaymentMethodId("bolbradesco")
-                    .setPayer(payer)
-
-
-            Mockito.when(paymentImplMock.newPayment()).thenReturn(paymentMock)
-            Mockito.when(payerImplMock.newPayer()).thenReturn(payer)
-            Mockito.when(identificationImplMock.newIdentification()).thenReturn(identificationMock)
-            Mockito.when(paymentMock.save()).thenReturn(payment)
-
             PaymentRequest paymentRequest =  new PaymentRequest("test_user_68226018@testuser.com",
-                    "Test", "User", "19119119100", "bolbradesco", address)
+                    "Test", "User", "19119119100", "bolbradesco", builderAddress())
         when:
             def result = orderServiceTest.paymentOrder(paymentRequest)
         then:
-            result != null
+            result
+    }
+
+    def builderPayment(String firstName = "Test") {
+
+        Address address = builderAddress()
+        Identification identification = new Identification().setNumber("19119119100").setType("CPF")
+        Payer payer = new Payer().setEmail("test_user_68226018@testuser.com")
+                .setFirstName(firstName)
+                .setLastName("User")
+                .setIdentification(identification)
+                .setAddress(address)
+
+        new Payment().setTransactionAmount(2000.00)
+                .setDescription("Produtos da MyTech")
+                .setPaymentMethodId("bolbradesco")
+                .setPayer(payer)
+    }
+
+    def builderAddress() {
+        new Address().setZipCode("06233200")
+                .setStreetName("Av. das Nações Unidas").setStreetNumber(3003)
+                .setNeighborhood("Bonfim").setCity("Osasco").setFederalUnit("SP")
     }
 
 }
