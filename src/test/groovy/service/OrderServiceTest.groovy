@@ -46,9 +46,9 @@ class OrderServiceTest extends Specification {
 
     def "should view items in cart"() {
         given:
-             Map<Product, Integer> cart = new HashMap<>();
-             cart.put(product, 1);
-             cart.put(product1, 1);
+            Map<Product, Integer> cart = new HashMap<>();
+            cart.put(product, 1);
+            cart.put(product1, 1);
             orderServiceTest.addInCart(orderRequest)
         when:
             def result = orderServiceTest.viewCart();
@@ -73,55 +73,48 @@ class OrderServiceTest extends Specification {
     def "should make a preference"() {
         given:
             PreferenceImpl preferenceImplMock = Mockito.mock(PreferenceImpl)
-            ItemImpl itemImplMock = Mockito.mock(ItemImpl)
-
-            OrderService orderServiceTest = new OrderService(preferenceImplMock, itemImplMock)
-
             Preference preferenceMock = Mockito.mock(Preference)
-            Item itemMock = Mockito.mock(Item)
+            Mockito.when(preferenceImplMock.newPreference()).thenReturn(preferenceMock)
 
+            ItemImpl itemImplMock = Mockito.mock(ItemImpl)
+            Item itemMock = Mockito.mock(Item)
             Item item = new Item().setTitle(product.getName())
                     .setId(product.getId().toString())
                     .setQuantity(1)
                     .setCategoryId(product.getCategory().toString())
                     .setUnitPrice(product.getPrice());
+            Mockito.when(itemImplMock.newItem()).thenReturn(item)
+
             Preference preference = new Preference().appendItem(item)
 
-            orderServiceTest.addInCart(new OrderRequest([new Order(1L, 1)]))
-
-            Mockito.when(preferenceImplMock.newPreference()).thenReturn(preferenceMock)
-            Mockito.when(itemImplMock.newItem()).thenReturn(item)
             Mockito.when(preferenceMock.appendItem(itemMock)).thenReturn(preferenceMock)
             Mockito.when(preferenceMock.save()).thenReturn(preference)
+
+            OrderService orderServiceTest = new OrderService(preferenceImplMock, itemImplMock)
+            orderServiceTest.addInCart(new OrderRequest([new Order(1L, 1)]))
 
         when:
             def preferenceResponseResult = orderServiceTest.preferenceOrder()
         then:
-            preferenceResponseResult != null
+            preferenceResponseResult
     }
 
     def "should not make a preference"() {
         when:
-            orderServiceTest.preferenceOrder()
+        orderServiceTest.preferenceOrder()
         then:
-            thrown(RuntimeException)
+        thrown(RuntimeException)
     }
 
     def "should not make a payment"() {
         when:
-            Address address = new Address().setZipCode("06233200")
-                    .setStreetName("Av. das Nações Unidas").setStreetNumber(3003)
-                    .setNeighborhood("Bonfim").setCity("Osasco").setFederalUnit("SP")
-
-            PaymentRequest paymentRequest =  new PaymentRequest("test_user_68226018@testuser.com",
-                    "Test", "User", "19119119100", "bolbradesco", address)
-
+            PaymentRequest paymentRequest = builderPaymentRequest()
             orderServiceTest.paymentOrder(paymentRequest)
         then:
             thrown(RuntimeException)
     }
 
-    def "shpuld make a payment"() {
+    def "should make a payment"() {
         given:
             Payment payment = builderPayment()
 
@@ -140,12 +133,16 @@ class OrderServiceTest extends Specification {
 
             OrderService orderServiceTest = new OrderService(paymentImplMock, payerImplMock, identificationImplMock)
 
-            PaymentRequest paymentRequest =  new PaymentRequest("test_user_68226018@testuser.com",
-                    "Test", "User", "19119119100", "bolbradesco", builderAddress())
+            PaymentRequest paymentRequest = builderPaymentRequest()
         when:
             def result = orderServiceTest.paymentOrder(paymentRequest)
         then:
             result
+    }
+
+    def builderPaymentRequest() {
+        new PaymentRequest("test_user_68226018@testuser.com",
+                    "Test", "User", "19119119100", "bolbradesco", builderAddress())
     }
 
     def builderPayment(String firstName = "Test") {
@@ -153,21 +150,21 @@ class OrderServiceTest extends Specification {
         Address address = builderAddress()
         Identification identification = new Identification().setNumber("19119119100").setType("CPF")
         Payer payer = new Payer().setEmail("test_user_68226018@testuser.com")
-                .setFirstName(firstName)
-                .setLastName("User")
-                .setIdentification(identification)
-                .setAddress(address)
+                    .setFirstName(firstName)
+                    .setLastName("User")
+                    .setIdentification(identification)
+                    .setAddress(address)
 
         new Payment().setTransactionAmount(2000.00)
-                .setDescription("Produtos da MyTech")
-                .setPaymentMethodId("bolbradesco")
-                .setPayer(payer)
+                    .setDescription("Produtos da MyTech")
+                    .setPaymentMethodId("bolbradesco")
+                    .setPayer(payer)
     }
 
     def builderAddress() {
         new Address().setZipCode("06233200")
-                .setStreetName("Av. das Nações Unidas").setStreetNumber(3003)
-                .setNeighborhood("Bonfim").setCity("Osasco").setFederalUnit("SP")
+                    .setStreetName("Av. das Nações Unidas").setStreetNumber(3003)
+                    .setNeighborhood("Bonfim").setCity("Osasco").setFederalUnit("SP")
     }
 
 }
